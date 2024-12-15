@@ -1,36 +1,39 @@
 # Experimental_Assignment1
-# Marker Tracker Project
 
-A ROS package for marker detection, tracking, and alignment using a robot's camera. The markers are placed on a circle around the robot. This package enables the robot to gather marker information, navigate to them, and visually highlight detected markers on the camera feed. Two different codes are written. In the first Python code `fix_controller.py`, the whole chassis of the car rotates and detects the markers placed around it. In the second code `rotating_controller.py`, only the link that carries the camera rotates while the car chassis stays still.
+Reza Davoudi Beni s6115320
+
+# Marker Detection and Alignment
+
+This ROS package is designed to detect and track markers using a robot-mounted camera. Markers are arranged in a circular pattern around the robot, and the package facilitates the collection of marker data and alignment of the camera with the detected markers. Two distinct approaches are implemented: in the first, `fix_controller.py`, the entire robot base rotates to identify the markers. In the second, `rotating_controller.py`, only the camera mount rotates while the robot base remains stationary.
 
 ---
 
 ## Table of Contents
 
-1. [Features](#features)  
-2. [Dependencies](#dependencies)  
-3. [Usage](#usage)  
-4. [Topics](#topics)  
-5. [Code Overview](#code-overview)  
-6. [Author](#author)  
+1. [Highlights](#highlights)  
+2. [Prerequisites](#prerequisites)  
+3. [Instructions](#instructions)  
+4. [ROS Topics](#ros-topics)  
+5. [Code Details](#code-details)  
+6. [Credits](#credits)  
 
 ---
 
-## Features
+## Highlights
 
-- Identifies markers based on their unique IDs.  
-- Tracks marker positions and aligns the robot's camera center with detected markers.  
-- Draws a circle around detected markers in the camera feed and publishes the processed image.  
-- Provides a mechanism for the robot to rotate and gather data on multiple markers.  
-- Stops rotation and alignment once all markers are processed.  
+- Recognizes markers using their unique identifiers.  
+- Tracks marker positions and aligns the camera view with detected markers.  
+- Highlights detected markers on the camera feed and publishes the annotated image.  
+- Rotates the robot or the camera mount to capture data from all markers.  
+- Automatically halts movement after processing all markers.  
 
 ---
 
-## Dependencies
+## Prerequisites
 
-Ensure the following software and libraries are installed:
+Ensure the following are installed:
 
-### Required Software
+### Software Requirements
 - **Python 3.x**
 - **ROS Noetic**
 
@@ -40,104 +43,96 @@ Ensure the following software and libraries are installed:
 - `opencv-python`
 - `imutils`
 
-### Install Python dependencies:
+### Install Python Dependencies:
 ```bash
 pip install numpy scipy imutils opencv-python
 ```
 
 ---
 
-## Usage
+## Instructions
 
-1. Clone the following Aruco ROS Repository in your workspace:
+1. Clone the Aruco ROS repository into your workspace:
 ```bash
 git clone https://github.com/CarmineD8/aruco_ros
 ```
-2. Clone the `robot_urdf` folder into your workspace.
-3. From the `aruco_ros` folder in this repository, substitute the `.cpp` file in the `src` folder with the one in the `src` folder of the cloned `aruco_ros` repository.
-4. Build your workspace:
+2. Add the `robot_urdf` folder to your workspace.
+3. Replace the `.cpp` file in the `src` directory of the cloned `aruco_ros` repository with the one provided in this package.
+4. Build the workspace:
 ```bash
 catkin_make
 ```
-5. Run the `fix_controller` node:
+5. Launch the `fix_controller` node for rotating the robot base:
 ```bash
 roslaunch robot_urdf assignment1_1.launch
 ```
-6. Ensure the following topics are active and functioning:
+6. Confirm the following topics are active:
 
 - `/robot4/camera1/image_raw/compressed`
 - `/robot4/camera1/camera_info`
 - `/marker/id_number`
 - `/marker/center_loc`
 
-7. The robot will rotate to gather marker information and align its camera with the markers one by one.
-8. For the case where only the camera link rotates while the car stays fixed, run the following launch file:
+7. To rotate only the camera mount while keeping the robot base stationary, use this command:
 ```bash
 roslaunch robot_urdf assignment1_2.launch
 ```
 
 ---
 
-## Topics
+## ROS Topics
 
 ### Published Topics
-`/output/image_raw/compressed`
 
-- **Message Type**: `sensor_msgs/CompressedImage`
-- **Description**: Publishes the processed image with detected markers highlighted.
+`/output/image_raw/compressed`
+- **Type**: `sensor_msgs/CompressedImage`
+- **Purpose**: Shares the annotated camera feed with detected markers.
 
 `/cmd_vel`
-
-- **Message Type**: `geometry_msgs/Twist`
-- **Description**: Publishes velocity commands to navigate the robot towards markers.
+- **Type**: `geometry_msgs/Twist`
+- **Purpose**: Sends velocity commands for robot navigation.
 
 ### Subscribed Topics
-`/robot4/camera1/image_raw/compressed`
 
-- **Message Type**: `sensor_msgs/CompressedImage`
-- **Description**: Subscribes to the raw camera feed for marker detection.
+`/robot4/camera1/image_raw/compressed`
+- **Type**: `sensor_msgs/CompressedImage`
+- **Purpose**: Receives the raw camera feed for processing.
 
 `/robot4/camera1/camera_info`
-
-- **Message Type**: `sensor_msgs/CameraInfo`
-- **Description**: Subscribes to the camera's resolution and focal properties.
+- **Type**: `sensor_msgs/CameraInfo`
+- **Purpose**: Retrieves camera specifications such as resolution and focal length.
 
 `/marker/id_number`
-
-- **Message Type**: `std_msgs/Int32`
-- **Description**: Subscribes to the ID of the currently detected marker.
+- **Type**: `std_msgs/Int32`
+- **Purpose**: Gets the ID of the currently detected marker.
 
 `/marker/center_loc`
-
-- **Message Type**: `geometry_msgs/Point`
-- **Description**: Subscribes to the center coordinates of the detected marker.
+- **Type**: `geometry_msgs/Point`
+- **Purpose**: Provides the coordinates of the detected marker's center.
 
 ---
 
-## Code Overview
+## Code Details
 
-The `fix_controller` class is the core of this package. Below are the key methods and their functions:
+### Key Functions
 
-### `Camera_callback(self, msg)`
+#### `Camera_callback(self, msg)`
+- Extracts camera center details from `CameraInfo` messages.
 
-- Extracts the camera's center coordinates from the `CameraInfo` message.
+#### `Id_callback(self, msg)`
+- Updates the ID of the detected marker.
 
-### `Id_callback(self, msg)`
+#### `Center_callback(self, msg)`
+- Records the position of the marker's center and stores it in a dictionary.
 
-- Updates the detected marker's ID (`id_number`).
-
-### `Center_callback(self, msg)`
-
-- Tracks the detected marker's center coordinates and stores them in a dictionary.
-
-### `Controller_callback(self, msg)`
-
+#### `Controller_callback(self, msg)`
 Implements:
-  - Marker detection and alignment.
-  - Rotational strategy to gather all marker information.
-  - Drawing circles on the processed image for visual feedback.
+  - Marker recognition and camera alignment.
+  - Strategies for rotation to capture all markers.
+  - Annotating the camera feed for visual feedback.
 
-### `main()`
+#### `main()`
+- Sets up the ROS node and starts the `fix_controller`.
 
-- Initializes the ROS node and starts the `fix_controller`.
+---
 
