@@ -14,8 +14,7 @@ This ROS package is designed to detect and track markers using a robot-mounted c
 2. [Prerequisites](#prerequisites)  
 3. [Instructions](#instructions)  
 4. [ROS Topics](#ros-topics)  
-5. [Code Details](#code-details)  
-6. [Credits](#credits)  
+5. [Code Details](#code-details)    
 
 ---
 
